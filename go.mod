@@ -1,3 +1,3 @@
-module github.com/yangtaosteve/etextbook_server
+module etextbook_server
 
 go 1.24.0
