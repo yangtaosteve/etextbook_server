@@ -1,7 +1,19 @@
 package auth
 
 import (
+	"database/sql"
+	"fmt"
 	"net/http"
+
+	_ "github.com/lib/pq"
+)
+
+const (
+	host     = "localhost"
+	port     = 5432
+	user     = "postgres"
+	password = "1234"
+	dbname   = "etextbook"
 )
 
 type SignUpInfo struct {
@@ -11,7 +23,26 @@ type SignUpInfo struct {
 }
 
 func doSignUp(w *http.ResponseWriter, info SignUpInfo) {
-	// Do something with the info
+	psqlInfo := fmt.Sprintf("host=%s port=%d user=%s password=%s dbname=%s sslmode=disable",
+		host, port, user, password, dbname)
+	db, err := sql.Open("postgres", psqlInfo)
+	if err != nil {
+		http.Error(*w, "Internal server error", http.StatusInternalServerError)
+		fmt.Print(err)
+		return
+	}
+
+	defer db.Close()
+
+	insertStmt := `INSERT INTO users (name, password, email) VALUES ( $1, $2, $3 )`
+	fmt.Println(insertStmt)
+	_, err = db.Exec(insertStmt, info.Username, info.Password, info.Email)
+	if err != nil {
+		http.Error(*w, "Internal server error", http.StatusInternalServerError)
+		fmt.Print(err)
+		return
+	}
+
 }
 
 func SignUpHandle(w http.ResponseWriter, r *http.Request) {
